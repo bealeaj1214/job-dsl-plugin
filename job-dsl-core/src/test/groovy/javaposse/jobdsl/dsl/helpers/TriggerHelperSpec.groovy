@@ -112,6 +112,38 @@ public class TriggerHelperSpec extends Specification {
         // Assume branch is fine
     }
 
+
+    def 'call gerrit trigger and verify build status value settings'() {
+      when:
+        context.gerrit {
+            events {
+                PatchsetCreated
+                DraftPublished
+            }
+
+            project('test-project', '**')
+        }
+      then:
+        def gerritTrigger = context.triggerNodes[0]
+        gerritTrigger.gerritBuildSuccessfulCodeReviewValue.size() == 1
+        gerritTrigger.gerritBuildSuccessfulCodeReviewValue[0].value() == '0'
+
+        gerritTrigger.gerritBuildSuccessfulVerifiedValue.size() == 1
+        gerritTrigger.gerritBuildSuccessfulVerifiedValue[0].value() as String == '1'
+
+        gerritTrigger.gerritBuildFailedVerifiedValue.size() == 1
+        gerritTrigger.gerritBuildFailedVerifiedValue[0].value() as String == '-1'
+
+        gerritTrigger.gerritBuildFailedCodeReviewValue.size() == 1
+        gerritTrigger.gerritBuildFailedCodeReviewValue[0].value() == '0'
+
+        gerritTrigger.gerritBuildUnstableVerifiedValue.size() == 1
+        gerritTrigger.gerritBuildUnstableVerifiedValue[0].value() as String == '0'
+
+        gerritTrigger.gerritBuildUnstableCodeReviewValue.size() == 1
+        gerritTrigger.gerritBuildUnstableCodeReviewValue[0].value() == '0'
+    }
+
     def 'execute withXml Action'() {
         Node root = new XmlParser().parse(new StringReader(WithXmlActionSpec.xml))
         def nodeBuilder = new NodeBuilder()
